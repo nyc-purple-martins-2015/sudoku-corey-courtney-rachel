@@ -19,6 +19,9 @@ class Sudoku
 
     @puzzle_squares = [@square1, @square2, @square3, @square4, @square5, @square6, @square7, @square8, @square9]
   end
+# ___________________________________
+
+
 
   def check_row(num_guess, row)
       return @puzzle[row].include?(num_guess)
@@ -28,7 +31,11 @@ class Sudoku
       return @puzzle_columns[column].include?(num_guess)
   end
 
-  # def check_square(num_guess, )
+  def check_square(num_guess,square)
+      return @puzzle_squares[square].include?(num_guess)
+  end
+
+
 
   def counter
     @checker.each do |num|
@@ -54,8 +61,7 @@ class Sudoku
     @puzzle
   end
 
-  # Returns a string representing the current state of the board
-  def to_s #pretty print
+  def to_s
     @puzzle.map {|row| row.join("")}.join("\n")
   end
 end
@@ -63,5 +69,4 @@ end
 test = Sudoku.new('1-58-2----9--764-52--4--819-19--73-6762-83-9-----61-5---76---3-43--2-5-16--3-89--')
 
 puts test
-
-p test.check_row("6",1)
+p test.check_square("5",0)
