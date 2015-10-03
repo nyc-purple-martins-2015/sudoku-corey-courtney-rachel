@@ -3,7 +3,8 @@ class Sudoku
   def initialize(board_string)
     @board_array = board_string.split("")
     @puzzle = Array.new(9) {@board_array.slice!(0, 9)}
-    @checker = (1..9).to_a
+    @checker = ("1".."9").to_a
+    # ^^changed these to strings so i can check them in the puzzle
     @puzzle_columns = @puzzle.transpose
     @mode = Hash.new
 
@@ -21,8 +22,6 @@ class Sudoku
   end
 # ___________________________________
 
-
-
   def check_row(num_guess, row)
       return @puzzle[row].include?(num_guess)
   end
@@ -34,8 +33,6 @@ class Sudoku
   def check_square(num_guess,square)
       return @puzzle_squares[square].include?(num_guess)
   end
-
-
 
   def counter
     @checker.each do |num|
@@ -49,11 +46,46 @@ class Sudoku
         end
       end
     end
-
     p @mode
   end
 
-  def solve
+  def solve(square)
+    # missing_nums = @checker - @puzzle_squares[square]
+
+    @puzzle_squares.each do |squares|
+      missing_nums = @checker - square
+        square.each do |box|
+        attempt = 0
+        if box == "-"
+          check_column(missing_nums[attempt], square.index(box))
+    attempt = 0
+    guess = missing_nums[attempt]
+    # possible_placements = []
+    @puzzle_squares[square].each do |box|
+      if box == "-"
+
+        if box.index < 3
+
+          if check_column(missing_nums[attempt], box.index) == false
+
+            if check_row(missing_nums[attempt], 0) == false
+
+              possible_placements.push(puzzle_squares.index_of(box))
+
+        elsif box.index >= 3 && box.index < 6
+
+          if check_column(missing_nums[attempt], box.index - 3) == false
+
+            if check_row(missing_nums[attempt], 1) == false
+              possible_placements.push(puzzle_squares.index_of(box))
+
+        elsif box.index >= 6
+
+          if check_column(missing_nums[attempt], box.index - 6) == false
+
+            if check_column(missing_nums[attempt], 2) == false
+              possible_placements.push(puzzle_squares.index_of(box))
+
 
   end
 
@@ -64,9 +96,11 @@ class Sudoku
   def to_s
     @puzzle.map {|row| row.join("")}.join("\n")
   end
+
+
 end
 
 test = Sudoku.new('1-58-2----9--764-52--4--819-19--73-6762-83-9-----61-5---76---3-43--2-5-16--3-89--')
 
 puts test
-p test.check_square("5",0)
+test.solve
