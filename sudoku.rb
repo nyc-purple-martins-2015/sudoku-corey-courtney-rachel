@@ -2,8 +2,10 @@ class Sudoku
   attr_accessor :puzzle
   def initialize(board_string)
     @board_array = board_string.split("")
+    @board_array2 = board_string.split("")
     @puzzle = Array.new(9) {@board_array.slice!(0, 9)}
-    @checker = (("1".."9").to_a)*9
+    @checker = ("1".."9").to_a
+    @full_checker = (("1".."9").to_a)*9
     @flat_puzzle = @puzzle.flatten
     # ^^changed these to strings so i can check them in the puzzle
     @puzzle_columns = @puzzle.transpose
@@ -20,8 +22,7 @@ class Sudoku
     @square9 = [@puzzle[6][6..8], @puzzle[7][6..8], @puzzle[8][6..8]].flatten
 
     @puzzle_squares = [@square1, @square2, @square3, @square4, @square5, @square6, @square7, @square8, @square9]
-    @inverse_arrays = []
-  end
+
 # ___________________________________
 
   def check_row(num_guess, row)
@@ -63,6 +64,7 @@ class Sudoku
       end
     end
   end
+end
 
   def counter
     @checker.each do |num|
@@ -78,12 +80,13 @@ class Sudoku
     end
   end
 
-  # def find_missing
-  #   @puzzle.each do |row|
-  #     @inverse_arrays << (@checker - row)
-  #   end
-  #   @inverse_arrays
-  # end
+  def find_missing
+    @inverse_arrays =[]
+    @puzzle.each do |row|
+      @inverse_arrays << (@checker - row)
+    end
+    @inverse_arrays
+  end
 
   # def check_spot
 
@@ -116,22 +119,52 @@ class Sudoku
   #   end
   # end
 
-  def solve
-    @missing_numbers = @checker - @flat_puzzle
-    p @missing_numbers
-    @puzzle.each_with_index do |row, row_index|
-        row.each_with_index do |box, box_index|
-          if box == "-"
-            for num in @checker.rotate(2)
-              if !(check_square(num, in_square(row_index,box_index))) && !(check_column(num, box_index)) && !(check_row(num, row_index))
-                box.gsub!('-', num)
-              end
+    def guess
+      @guessed = []
+      while @flat_puzzle.include?("-")
+        @puzzle.each_with_index do |row, row_index|
+          row.each_with_index do |box, box_index|
+            try = @inverse_arrays[row_index].sample
+            if box == "-"
+            box.gsub!('-', try)
+            @guessed << try
+            @inverse_arrays[row_index].delete(try)
             end
           end
         end
       end
-    p @puzzle
+    end
+
+def guess_check
+  if @flat_puzzle.sort != @full_checker
+    guess
+  else
+     p @guessed
+    return @puzzle
   end
+end
+
+def create_permutations
+  @permutations = []
+  @permutations << @guessed.permutation.to_a
+  p @permutations
+end
+
+
+  # def solve
+  #   @puzzle.each_with_index do |row, row_index|
+  #       row.each_with_index do |box, box_index|
+  #         if box == "-"
+  #           for num in @checker
+  #             if !(check_square(num, in_square(row_index,box_index))) && !(check_column(num, box_index)) && !(check_row(num, row_index))
+  #               box.gsub!('-', num)
+  #             end
+  #           end
+  #         end
+  #       end
+  #     end
+  #   p @puzzle
+  # end
 
   def board #print as a string form
     @puzzle
@@ -147,8 +180,11 @@ end
 test = Sudoku.new('1-58-2----9--764-52--4--819-19--73-6762-83-9-----61-5---76---3-43--2-5-16--3-89--')
 
 puts test
-test.solve
+test.find_missing
+test.guess
+test.create_permutations
 puts test
+
 # bug: places a wrong number too soon in evaluation process
 
 # ideas:
