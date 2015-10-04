@@ -19,6 +19,7 @@ class Sudoku
     @square9 = [@puzzle[6][6..8], @puzzle[7][6..8], @puzzle[8][6..8]].flatten
 
     @puzzle_squares = [@square1, @square2, @square3, @square4, @square5, @square6, @square7, @square8, @square9]
+    @inverse_arrays = []
   end
 # ___________________________________
 
@@ -34,6 +35,34 @@ class Sudoku
       return @puzzle_squares[square].include?(num_guess)
   end
 
+  def in_square(row, column)
+    if row < 3
+      if column < 3
+        return 0
+      elsif column >=3 && column < 6
+        return 1
+      elsif column >= 6
+        return 2
+      end
+    elsif row >=3 && row < 6
+      if column < 3
+        return 3
+      elsif column >=3 && column < 6
+        return 4
+      elsif column >= 6
+        return 5
+      end
+    elsif row >= 6
+      if column < 3
+        return 6
+      elsif column >=3 && column < 6
+        return 7
+      elsif column >= 6
+        return 8
+      end
+    end
+  end
+
   def counter
     @checker.each do |num|
       @mode[num.to_s] = 0
@@ -46,47 +75,59 @@ class Sudoku
         end
       end
     end
-    p @mode
   end
 
-  def solve(square)
-    # missing_nums = @checker - @puzzle_squares[square]
+  def find_missing
+    @puzzle.each do |row|
+      @inverse_arrays << (@checker - row)
+    end
+    @inverse_arrays
+  end
 
-    @puzzle_squares.each do |squares|
-      missing_nums = @checker - square
-        square.each do |box|
-        attempt = 0
-        if box == "-"
-          check_column(missing_nums[attempt], square.index(box))
-    attempt = 0
-    guess = missing_nums[attempt]
-    # possible_placements = []
-    @puzzle_squares[square].each do |box|
-      if box == "-"
+  # def check_spot
 
-        if box.index < 3
+  #   @puzzle.each_with_index do |row, row_index|
+  #     row.each_with_index do |box, box_index|
+  #       if box == "-"
+  #         available_spaces = 0
+  #         for num in @checker
+  #           spot_values = []
 
-          if check_column(missing_nums[attempt], box.index) == false
+  #           if !(check_column(num, box_index)) && !(check_row(num, row_index)) && !(check_square(num, in_square(row_index,box_index)))
+  #             available_spaces +=1
+  #           end
+  #             if available_spaces == 1
+  #               box.gsub!('-', num)
+  #             end
+  #         end
+  #       end
+  #     end
+  #   end
+  #   p puzzle
+  # end
 
-            if check_row(missing_nums[attempt], 0) == false
+  # def find_possible
+  #   possible_arrays = []
+  #   @puzzle.each_with_index do |row, row_index|
+  #     row.each_with_index do |box, box_index|
 
-              possible_placements.push(puzzle_squares.index_of(box))
+  #     end
+  #   end
+  # end
 
-        elsif box.index >= 3 && box.index < 6
-
-          if check_column(missing_nums[attempt], box.index - 3) == false
-
-            if check_row(missing_nums[attempt], 1) == false
-              possible_placements.push(puzzle_squares.index_of(box))
-
-        elsif box.index >= 6
-
-          if check_column(missing_nums[attempt], box.index - 6) == false
-
-            if check_column(missing_nums[attempt], 2) == false
-              possible_placements.push(puzzle_squares.index_of(box))
-
-
+  def solve
+    @puzzle.each_with_index do |row, row_index|
+        row.each_with_index do |box, box_index|
+          if box == "-"
+            for num in @checker
+              if !(check_column(num, box_index)) && !(check_row(num, row_index)) && !(check_square(num, in_square(row_index,box_index)))
+                box.gsub!('-', num)
+              end
+            end
+          end
+        end
+      end
+    p @puzzle
   end
 
   def board #print as a string form
@@ -103,4 +144,6 @@ end
 test = Sudoku.new('1-58-2----9--764-52--4--819-19--73-6762-83-9-----61-5---76---3-43--2-5-16--3-89--')
 
 puts test
+test.find_missing
 test.solve
+puts test
