@@ -3,7 +3,8 @@ class Sudoku
   def initialize(board_string)
     @board_array = board_string.split("")
     @puzzle = Array.new(9) {@board_array.slice!(0, 9)}
-    @checker = ("1".."9").to_a
+    @checker = (("1".."9").to_a)*9
+    @flat_puzzle = @puzzle.flatten
     # ^^changed these to strings so i can check them in the puzzle
     @puzzle_columns = @puzzle.transpose
     @mode = Hash.new
@@ -77,12 +78,12 @@ class Sudoku
     end
   end
 
-  def find_missing
-    @puzzle.each do |row|
-      @inverse_arrays << (@checker - row)
-    end
-    @inverse_arrays
-  end
+  # def find_missing
+  #   @puzzle.each do |row|
+  #     @inverse_arrays << (@checker - row)
+  #   end
+  #   @inverse_arrays
+  # end
 
   # def check_spot
 
@@ -116,11 +117,13 @@ class Sudoku
   # end
 
   def solve
+    @missing_numbers = @checker - @flat_puzzle
+    p @missing_numbers
     @puzzle.each_with_index do |row, row_index|
         row.each_with_index do |box, box_index|
           if box == "-"
-            for num in @checker
-              if !(check_column(num, box_index)) && !(check_row(num, row_index)) && !(check_square(num, in_square(row_index,box_index)))
+            for num in @checker.rotate(2)
+              if !(check_square(num, in_square(row_index,box_index))) && !(check_column(num, box_index)) && !(check_row(num, row_index))
                 box.gsub!('-', num)
               end
             end
@@ -144,6 +147,17 @@ end
 test = Sudoku.new('1-58-2----9--764-52--4--819-19--73-6762-83-9-----61-5---76---3-43--2-5-16--3-89--')
 
 puts test
-test.find_missing
 test.solve
 puts test
+# bug: places a wrong number too soon in evaluation process
+
+# ideas:
+
+# create a loop, that stipulates, for either each structure, or the puzzle as a whole IF there is a dash remaining, try a different permutation.
+
+#create a rule, that says, only place a number, when that number, can only logically be placed, in one spot in a structure.
+
+# we know 9 of each number in the puzzle
+#81 numbers = complete Array
+#complete - existing numbers = missing numbers
+#place missing numbers in the -'s until all check logic is met, and there are no -'s.
