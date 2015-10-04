@@ -1,14 +1,10 @@
 class Sudoku
-  attr_accessor :puzzle
+
   def initialize(board_string)
-    @board_array = board_string.split("")
-    @puzzle = Array.new(9) {@board_array.slice!(0, 9)}
+    board_array = board_string.split("")
+    @puzzle = Array.new(9) {board_array.slice!(0, 9)}
     @checker = ("1".."9").to_a
-    @full_checker = (("1".."9").to_a)*9
-    @flat_puzzle = @puzzle.flatten
-    # ^^changed these to strings so i can check them in the puzzle
     @puzzle_columns = @puzzle.transpose
-    @mode = Hash.new
 
     @square1 = [@puzzle[0][0..2], @puzzle[1][0..2], @puzzle[2][0..2]].flatten
     @square2 = [@puzzle[0][3..5], @puzzle[1][3..5], @puzzle[2][3..5]].flatten
@@ -21,21 +17,8 @@ class Sudoku
     @square9 = [@puzzle[6][6..8], @puzzle[7][6..8], @puzzle[8][6..8]].flatten
 
     @puzzle_squares = [@square1, @square2, @square3, @square4, @square5, @square6, @square7, @square8, @square9]
-
+  end
 # ___________________________________
-
-  def check_row(num_guess, row)
-      return @puzzle[row].include?(num_guess)
-  end
-
-  def check_column(num_guess, column)
-      return @puzzle_columns[column].include?(num_guess)
-  end
-
-  def check_square(num_guess,square)
-      return @puzzle_squares[square].include?(num_guess)
-  end
-
   def in_square(row, column)
     if row < 3
       if column < 3
@@ -63,21 +46,6 @@ class Sudoku
       end
     end
   end
-end
-
-  def counter
-    @checker.each do |num|
-      @mode[num.to_s] = 0
-    end
-
-    @puzzle.each do |row|
-      row.each do |box|
-        if @mode.has_key?(box)
-          @mode[box] += 1
-        end
-      end
-    end
-  end
 
   def find_missing
     @inverse_arrays =[]
@@ -87,39 +55,22 @@ end
     @inverse_arrays
   end
 
-  # def find_possible
-  #   possible_arrays = []
-  #   @puzzle.each_with_index do |row, row_index|
-  #     row.each_with_index do |box, box_index|
-
-  #     end
-  #   end
-  # end
-
-
-
-
   def solve
-    @puzzle.each_with_index do |row, row_index|
-      row.each_with_index do |box, box_index|
+    until @puzzle.all?{|row| row.sort == @checker}
+      find_missing
+      @puzzle.each_with_index do |row, row_index|
+        row.each_with_index do |box, box_index|
           if (@inverse_arrays[row_index] - @puzzle_columns[box_index] - @puzzle_squares[in_square(row_index, box_index)]).length == 1 && box == "-"
-            num = (@inverse_arrays[row_index] - @puzzle_columns[box_index] - @puzzle_squares[in_square(row_index, box_index)])
-            box.gsub!("-",num.join(""))
+            num = (@inverse_arrays[row_index] - @puzzle_columns[box_index] - @puzzle_squares[in_square(row_index, box_index)]).join("")
+
+            box.gsub!("-",num)
           end
         end
       end
     end
+  end
 
-  #         if box == "-"
-  #           for num in @checker
-  #             if !(check_square(num, in_square(row_index,box_index))) && !(check_column(num, box_index)) && !(check_row(num, row_index))
-  #               box.gsub!('-', num)
-  #             end
-  #           end
-  #         end
-
-
-  def board #print as a string form
+  def board
     @puzzle
   end
 
@@ -127,30 +78,10 @@ end
     @puzzle.map {|row| row.join("")}.join("\n")
   end
 
-
 end
 
-test = Sudoku.new('1-58-2----9--764-52--4--819-19--73-6762-83-9-----61-5---76---3-43--2-5-16--3-89--')
+test = Sudoku.new('6-873----2-----46-----6482--8---57-19--618--4-31----8-86-2---39-5----1--1--4562--')
 
 puts test
-test.find_missing
-test.solve
-test.find_missing
-test.solve
-test.find_missing
 test.solve
 puts test
-
-
-# bug: places a wrong number too soon in evaluation process
-
-# ideas:
-
-# create a loop, that stipulates, for either each structure, or the puzzle as a whole IF there is a dash remaining, try a different permutation.
-
-#create a rule, that says, only place a number, when that number, can only logically be placed, in one spot in a structure.
-
-# we know 9 of each number in the puzzle
-#81 numbers = complete Array
-#complete - existing numbers = missing numbers
-#place missing numbers in the -'s until all check logic is met, and there are no -'s.
