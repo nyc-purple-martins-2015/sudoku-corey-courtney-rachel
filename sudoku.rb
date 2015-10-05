@@ -1,11 +1,11 @@
 class Sudoku
-  attr_accessor :puzzle
+  attr_accessor :puzzle, :puzzle_columns, :puzzle_squares
+
   def initialize(board_string)
-    @board_array = board_string.split("")
-    @puzzle = Array.new(9) {@board_array.slice!(0, 9)}
-    @checker = (1..9).to_a
+    board_array = board_string.split("")
+    @puzzle = Array.new(9) {board_array.slice!(0, 9)}
+    @checker = ("1".."9").to_a
     @puzzle_columns = @puzzle.transpose
-    @mode = Hash.new
 
     @square1 = [@puzzle[0][0..2], @puzzle[1][0..2], @puzzle[2][0..2]].flatten
     @square2 = [@puzzle[0][3..5], @puzzle[1][3..5], @puzzle[2][3..5]].flatten
@@ -19,49 +19,71 @@ class Sudoku
 
     @puzzle_squares = [@square1, @square2, @square3, @square4, @square5, @square6, @square7, @square8, @square9]
   end
-
-  def check_row(num_guess, row)
-      return @puzzle[row].include?(num_guess)
-  end
-
-  def check_column(num_guess, column)
-      return @puzzle_columns[column].include?(num_guess)
-  end
-
-  # def check_square(num_guess, )
-
-  def counter
-    @checker.each do |num|
-      @mode[num.to_s] = 0
-    end
-
-    @puzzle.each do |row|
-      row.each do |box|
-        if @mode.has_key?(box)
-          @mode[box] += 1
-        end
+# ___________________________________
+  def in_square(row, column)
+    if row < 3
+      if column < 3
+        return 0
+      elsif column >=3 && column < 6
+        return 1
+      elsif column >= 6
+        return 2
+      end
+    elsif row >=3 && row < 6
+      if column < 3
+        return 3
+      elsif column >=3 && column < 6
+        return 4
+      elsif column >= 6
+        return 5
+      end
+    elsif row >= 6
+      if column < 3
+        return 6
+      elsif column >=3 && column < 6
+        return 7
+      elsif column >= 6
+        return 8
       end
     end
+  end
 
-    p @mode
+  def find_missing
+    @inverse_arrays =[]
+    @puzzle.each do |row|
+      @inverse_arrays << (@checker - row)
+    end
+    @inverse_arrays
   end
 
   def solve
+    until @puzzle.all?{|row| row.sort == @checker}
+      find_missing
+      @puzzle.each_with_index do |row, row_index|
+        row.each_with_index do |box, box_index|
+          if (@inverse_arrays[row_index] - @puzzle_columns[box_index] - @puzzle_squares[in_square(row_index, box_index)]).length == 1 && box == "-"
+            num = (@inverse_arrays[row_index] - @puzzle_columns[box_index] - @puzzle_squares[in_square(row_index, box_index)]).join("")
 
+            box.gsub!("-",num)
+          end
+        end
+      end
+    end
+    return true
   end
 
-  def board #print as a string form
+  def board
     @puzzle
   end
 
-  # Returns a string representing the current state of the board
-  def to_s #pretty print
+  def to_s
     @puzzle.map {|row| row.join("")}.join("\n")
   end
+
 end
 
-test = Sudoku.new('1-58-2----9--764-52--4--819-19--73-6762-83-9-----61-5---76---3-43--2-5-16--3-89--')
+# test = Sudoku.new('6-873----2-----46-----6482--8---57-19--618--4-31----8-86-2---39-5----1--1--4562--')
 
-puts test
-
-p test.check_row("6",1)
+# puts test
+# p test.solve
+# puts test
