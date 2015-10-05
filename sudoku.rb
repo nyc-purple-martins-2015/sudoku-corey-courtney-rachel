@@ -1,11 +1,11 @@
 class Sudoku
   attr_accessor :puzzle, :puzzle_columns, :puzzle_squares
+
   def initialize(board_string)
-    @board_array = board_string.split("")
-    @puzzle = Array.new(9) {@board_array.slice!(0, 9)}
+    board_array = board_string.split("")
+    @puzzle = Array.new(9) {board_array.slice!(0, 9)}
     @checker = ("1".."9").to_a
     @puzzle_columns = @puzzle.transpose
-    @mode = Hash.new
 
     @square1 = [@puzzle[0][0..2], @puzzle[1][0..2], @puzzle[2][0..2]].flatten
     @square2 = [@puzzle[0][3..5], @puzzle[1][3..5], @puzzle[2][3..5]].flatten
@@ -18,86 +18,72 @@ class Sudoku
     @square9 = [@puzzle[6][6..8], @puzzle[7][6..8], @puzzle[8][6..8]].flatten
 
     @puzzle_squares = [@square1, @square2, @square3, @square4, @square5, @square6, @square7, @square8, @square9]
-
+  end
+# ___________________________________
+  def in_square(row, column)
+    if row < 3
+      if column < 3
+        return 0
+      elsif column >=3 && column < 6
+        return 1
+      elsif column >= 6
+        return 2
+      end
+    elsif row >=3 && row < 6
+      if column < 3
+        return 3
+      elsif column >=3 && column < 6
+        return 4
+      elsif column >= 6
+        return 5
+      end
+    elsif row >= 6
+      if column < 3
+        return 6
+      elsif column >=3 && column < 6
+        return 7
+      elsif column >= 6
+        return 8
+      end
+    end
   end
 
-  # def counter_for_mode
-  #   @checker.each do |num|
-  #     @mode[num.to_s] = 0
-  #   end
-
-  #   @puzzle.each do |row|
-  #     row.each do |box|
-  #       if @mode.has_key?(box)
-  #         @mode[box] += 1
-  #       end
-  #     end
-  #   end
-
-  #   p @mode
-  # end
-
-  def check_row(num_guess, row)
-      return @puzzle[row].include?(num_guess)
-  end
-
-  def check_column(num_guess, column)
-      return @puzzle_columns[column].include?(num_guess)
-  end
-
-  def check_square(num_guess, square)
-    return @puzzle_squares[square].include?(num_guess)
+  def find_missing
+    @inverse_arrays =[]
+    @puzzle.each do |row|
+      @inverse_arrays << (@checker - row)
+    end
+    @inverse_arrays
   end
 
   def solve
-    @puzzle.each do |row|
-      row.each_with_index do |box, box_index|
-        if box == "-"
-          for num in @checker
-            if !(check_column(num, box_index)) && !(check_square(num, box_index)) && !(check_row(num, box_index))
-              box.gsub!('-', num)
-            end
+    until @puzzle.all?{|row| row.sort == @checker}
+      find_missing
+      @puzzle.each_with_index do |row, row_index|
+        row.each_with_index do |box, box_index|
+          if (@inverse_arrays[row_index] - @puzzle_columns[box_index] - @puzzle_squares[in_square(row_index, box_index)]).length == 1 && box == "-"
+            num = (@inverse_arrays[row_index] - @puzzle_columns[box_index] - @puzzle_squares[in_square(row_index, box_index)]).join("")
+
+            box.gsub!("-",num)
           end
         end
       end
     end
-    p @puzzle
+    return true
   end
 
-
-
-
-
-# 1. Go through each row in puzzle.
-# 2. In each row, check each box.
-# 3. If the box is a "-"
-    # Is the first number in missing_nums in the matching column/square?
-      # TRUE: try the next number in missing_nums
-      # FALSE: gsub!("-", missing_num[idx])
-              #- delete the number from missing_nums
-    # Go on to the next dash and repeat #3 again
-
-
-  def board #print as a string form
+  def board
     @puzzle
   end
 
-  # Returns a string representing the current state of the board
-  def to_s #pretty print
-    puts @puzzle.map {|row| row.join("")}.join("\n")
-    # puts
-    # puts @puzzle_columns.map {|row| row.join("")}.join("\n")
-    # puts
-    # puts @puzzle_squares.map {|row| row.join("")}.join("\n")
-    
+  def to_s
+    @puzzle.map {|row| row.join("")}.join("\n")
   end
+
 end
 
-test = Sudoku.new('1-58-2----9--764-52--4--819-19--73-6762-83-9-----61-5---76---3-43--2-5-16--3-89--')
+# test = Sudoku.new('6-873----2-----46-----6482--8---57-19--618--4-31----8-86-2---39-5----1--1--4562--')
 
 # puts test
-# test.to_s
-# p test.check_square("4", 0)
-# p test.puzzle_squares
-# p test.puzzle_columns
-p test.solve
+# p test.solve
+# puts test
